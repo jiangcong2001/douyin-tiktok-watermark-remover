@@ -193,16 +193,60 @@ async def _parse_instagram(url: str) -> dict:
     if not code:
         return _empty("instagram", "无法解析Instagram链接")
 
-    proxy_url = f"https://ddinstagram.com/p/{code}/"
-    return {
-        "platform": "instagram",
-        "title": "",
-        "cover": "",
-        "video_url": "",
-        "images": [],
-        "author": "",
-        "proxy_url": proxy_url,
-    }
+    title = "Instagram"
+    cover = ""
+    video_url = ""
+    images = []
+    author = ""
+
+    async with httpx.AsyncClient(timeout=20, follow_redirects=True) as client:
+        try:
+            resp = await client.get(
+                f"https://ddinstagram.com/p/{code}/",
+                headers={"User-Agent": UA, "Accept": "text/html"},
+            )
+            if resp.status_code != 200:
+                return _empty("instagram", f"代理服务返回 {resp.status_code}")
+
+            html = resp.text
+
+            title = _extract_meta(html, "og:title") or "Instagram"
+            cover = _extract_meta(html, "og:image") or ""
+            video_url = _extract_meta(html, "og:video") or ""
+
+            if cover and cover not in images:
+                images.append(cover)
+
+            img_tags = re.findall(r'<img[^>]+src="(https?://[^"]+)"', html)
+            for img in img_tags:
+                if any(d in img for d in ["scontent", "cdninstagram", "fbcdn"]):
+                    if img not in images:
+                        images.append(img)
+
+            vid_tags = re.findall(r'<source[^>]+src="(https?://[^"]+)"', html)
+            if not video_url and vid_tags:
+                video_url = vid_tags[0]
+
+            vid_meta = re.findall(r'<meta[^>]+property="og:video:secure_url"[^>]+content="([^"]+)"', html)
+            if not video_url and vid_meta:
+                video_url = vid_meta[0]
+
+            if title and "on Instagram:" in title:
+                author = title.split("on Instagram:")[0].strip()
+
+            if images or video_url:
+                return {
+                    "platform": "instagram",
+                    "title": title,
+                    "cover": cover,
+                    "video_url": video_url,
+                    "images": images,
+                    "author": author,
+                }
+        except Exception as e:
+            return _empty("instagram", f"代理请求失败: {str(e)[:100]}")
+
+    return _empty("instagram", "解析失败，链接可能需要登录查看")
 
 
 async def _parse_youtube(url: str) -> dict:
