@@ -4,7 +4,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import httpx
 import re
-import json
 import urllib.parse
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.staticfiles import StaticFiles
@@ -194,56 +193,16 @@ async def _parse_instagram(url: str) -> dict:
     if not code:
         return _empty("instagram", "无法解析Instagram链接")
 
-    async with httpx.AsyncClient(timeout=20, follow_redirects=True) as client:
-        try:
-            resp = await client.get(
-                f"https://ddinstagram.com/p/{code}/",
-                headers={"User-Agent": UA},
-            )
-            html = resp.text
-
-            title = _extract_meta(html, "og:title") or "Instagram"
-            cover = _extract_meta(html, "og:image") or ""
-            video_url = _extract_meta(html, "og:video") or ""
-
-            images = []
-            if cover:
-                images.append(cover)
-
-            img_tags = re.findall(r'<img[^>]+src="(https?://[^"]+)"', html)
-            for img in img_tags:
-                if "scontent" in img or "cdninstagram" in img or "fbcdn" in img:
-                    if img not in images:
-                        images.append(img)
-
-            vid_tags = re.findall(r'<source[^>]+src="(https?://[^"]+\.mp4[^"]*)"', html)
-            if vid_tags and not video_url:
-                video_url = vid_tags[0]
-
-            if not video_url:
-                vid_meta = re.findall(r'<meta[^>]+property="og:video:secure_url"[^>]+content="([^"]+)"', html)
-                if vid_meta:
-                    video_url = vid_meta[0]
-
-            author = ""
-            if title:
-                author = title.split(" on Instagram:")[0].strip()
-                if not author and " \u2022 " in title:
-                    author = title.split(" \u2022 ")[0].strip()
-
-            if images or video_url:
-                return {
-                    "platform": "instagram",
-                    "title": title,
-                    "cover": cover,
-                    "video_url": video_url,
-                    "images": images,
-                    "author": author,
-                }
-        except Exception:
-            pass
-
-    return _empty("instagram", "无法获取内容，请尝试在Instagram APP内分享链接后重试")
+    proxy_url = f"https://ddinstagram.com/p/{code}/"
+    return {
+        "platform": "instagram",
+        "title": "",
+        "cover": "",
+        "video_url": "",
+        "images": [],
+        "author": "",
+        "proxy_url": proxy_url,
+    }
 
 
 async def _parse_youtube(url: str) -> dict:
