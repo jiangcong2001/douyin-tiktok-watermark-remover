@@ -194,137 +194,56 @@ async def _parse_instagram(url: str) -> dict:
     if not code:
         return _empty("instagram", "无法解析Instagram链接")
 
-    title = "Instagram"
-    cover = ""
-    video_url = ""
-    images = []
-    author = ""
-
-    result = await _try_instagram_html(code)
-    if result:
-        return result
-
-    result = await _try_instagram_graphql(code)
-    if result:
-        return result
-
-    return _empty("instagram", "无法获取内容，可能触发反爬机制")
-
-
-async def _try_instagram_html(code: str) -> dict | None:
-    try:
-        post_url = f"https://www.instagram.com/p/{code}/"
-        async with httpx.AsyncClient(timeout=15, follow_redirects=True) as client:
-            resp = await client.get(post_url, headers={
-                "User-Agent": UA,
-                "Accept": "text/html,application/xhtml+xml",
-                "Accept-Language": "en-US,en;q=0.9",
-                "Sec-Fetch-Dest": "document",
-                "Sec-Fetch-Mode": "navigate",
-            })
+    async with httpx.AsyncClient(timeout=20, follow_redirects=True) as client:
+        try:
+            resp = await client.get(
+                f"https://ddinstagram.com/p/{code}/",
+                headers={"User-Agent": UA},
+            )
             html = resp.text
 
-        if "login" in html.lower() and ("instagram" in html.lower()):
-            return None
+            title = _extract_meta(html, "og:title") or "Instagram"
+            cover = _extract_meta(html, "og:image") or ""
+            video_url = _extract_meta(html, "og:video") or ""
 
-        title = _extract_meta(html, "og:title") or "Instagram"
-        cover = _extract_meta(html, "og:image") or ""
-        video_url = _extract_meta(html, "og:video") or ""
+            images = []
+            if cover:
+                images.append(cover)
 
-        author = title.split(" on Instagram:")[0].strip() if "on Instagram:" in title else ""
-        if not author:
-            author = title.split(" \u2022 ")[0].strip()
+            img_tags = re.findall(r'<img[^>]+src="(https?://[^"]+)"', html)
+            for img in img_tags:
+                if "scontent" in img or "cdninstagram" in img or "fbcdn" in img:
+                    if img not in images:
+                        images.append(img)
 
-        images = []
-        if cover:
-            images.append(cover)
+            vid_tags = re.findall(r'<source[^>]+src="(https?://[^"]+\.mp4[^"]*)"', html)
+            if vid_tags and not video_url:
+                video_url = vid_tags[0]
 
-        scripts = re.findall(r'<script type="application/ld\+json">(.*?)</script>', html, re.DOTALL)
-        for s in scripts:
-            try:
-                import json
-                data = json.loads(s)
-                items = data if isinstance(data, list) else [data]
-                for item in items:
-                    if item.get("@type") == "VideoObject":
-                        if not video_url:
-                            video_url = item.get("contentUrl", "")
-                    if item.get("image"):
-                        imgs = item["image"] if isinstance(item["image"], list) else [item["image"]]
-                        for img in imgs:
-                            if isinstance(img, str) and img not in images:
-                                images.append(img)
-                    elif isinstance(item, str) and item not in images:
-                        images.append(item)
-            except Exception:
-                pass
+            if not video_url:
+                vid_meta = re.findall(r'<meta[^>]+property="og:video:secure_url"[^>]+content="([^"]+)"', html)
+                if vid_meta:
+                    video_url = vid_meta[0]
 
-        if not images and cover:
-            images = [cover]
+            author = ""
+            if title:
+                author = title.split(" on Instagram:")[0].strip()
+                if not author and " \u2022 " in title:
+                    author = title.split(" \u2022 ")[0].strip()
 
-        return {
-            "platform": "instagram",
-            "title": title,
-            "cover": cover,
-            "video_url": video_url,
-            "images": images,
-            "author": author,
-        }
-    except Exception:
-        return None
+            if images or video_url:
+                return {
+                    "platform": "instagram",
+                    "title": title,
+                    "cover": cover,
+                    "video_url": video_url,
+                    "images": images,
+                    "author": author,
+                }
+        except Exception:
+            pass
 
-
-async def _try_instagram_graphql(code: str) -> dict | None:
-    try:
-        async with httpx.AsyncClient(timeout=15) as client:
-            resp = await client.get(
-                f"https://www.instagram.com/p/{code}/?__a=1&__d=1",
-                headers={"User-Agent": UA, "Accept": "application/json"}
-            )
-            if resp.status_code != 200:
-                return None
-            data = resp.json()
-
-        items = data.get("items", [data]) if isinstance(data, dict) else []
-        if not items:
-            items = [data]
-
-        item = items[0] if items else {}
-        caption = item.get("caption", "")
-        if isinstance(caption, dict):
-            caption = caption.get("text", "")
-
-        carousel = item.get("carousel_media", [])
-        is_video = item.get("is_video", False)
-        video_url = item.get("video_url", "") if is_video else ""
-
-        images = []
-        if carousel:
-            for m in carousel:
-                if m.get("is_video"):
-                    if not video_url:
-                        video_url = m.get("video_url", "")
-                imgs = m.get("image_versions2", {}).get("candidates", [])
-                if imgs:
-                    images.append(imgs[0].get("url", ""))
-        else:
-            imgs = item.get("image_versions2", {}).get("candidates", [])
-            if imgs:
-                images.append(imgs[0].get("url", ""))
-
-        user = item.get("user", {})
-        cover = images[0] if images else ""
-
-        return {
-            "platform": "instagram",
-            "title": caption[:200] if caption else "Instagram",
-            "cover": cover,
-            "video_url": video_url,
-            "images": images,
-            "author": user.get("username", ""),
-        }
-    except Exception:
-        return None
+    return _empty("instagram", "无法获取内容，请尝试在Instagram APP内分享链接后重试")
 
 
 async def _parse_youtube(url: str) -> dict:
