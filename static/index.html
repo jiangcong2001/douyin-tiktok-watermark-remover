@@ -142,6 +142,12 @@ async function parseUrl() {
   }
 }
 
+function proxyUrl(url) {
+  if (!url) return '';
+  if (url.startsWith('/api/')) return url;
+  return '/api/proxy?url=' + encodeURIComponent(url);
+}
+
 function renderResult(data) {
   const p = data.platform;
   const label = PLATFORM_LABELS[p] || p;
@@ -151,12 +157,17 @@ function renderResult(data) {
   if (data.title) html += `<div class="result-title">${esc(data.title)}</div>`;
   if (data.author) html += `<div class="result-author">@${esc(data.author)}</div>`;
 
+  if (data.embed) {
+    html += `<div class="media-preview">${data.embed}</div>`;
+  }
+
   if (data.video_url) {
-    html += `<div class="media-preview"><video controls preload="metadata" poster="${data.cover||''}"><source src="${data.video_url}" type="video/mp4"></video></div>`;
+    const proxied = proxyUrl(data.video_url);
+    html += `<div class="media-preview"><video controls preload="metadata" poster="${data.cover||''}" crossorigin="anonymous"><source src="${proxied}" type="video/mp4"></video></div>`;
     html += `<div class="actions">
-      <button class="btn-action btn-download" onclick="downloadMedia('${data.video_url}','video.mp4')">下载视频</button>
-      <button class="btn-action btn-copy" onclick="copyUrl('${data.video_url}')">复制链接</button>
-      <a class="btn-action btn-open" href="${data.video_url}" target="_blank">新窗口打开</a>
+      <button class="btn-action btn-download" onclick="downloadMedia('${esc_attr(data.video_url)}','video.mp4')">下载视频</button>
+      <button class="btn-action btn-copy" onclick="copyUrl('${esc_attr(data.video_url)}')">复制链接</button>
+      <a class="btn-action btn-open" href="${proxied}" target="_blank">新窗口打开</a>
     </div>`;
   }
 
@@ -164,14 +175,14 @@ function renderResult(data) {
     html += '<div class="images-grid">';
     data.images.forEach((img,i) => {
       html += `<div class="image-card">
-        <img src="${img}" loading="lazy" onerror="this.style.display='none'">
-        <button class="img-btn" onclick="downloadMedia('${img}','image-${i+1}.jpg')">下载</button>
+        <img src="${proxyUrl(img)}" loading="lazy" onerror="this.style.display='none'">
+        <button class="img-btn" onclick="downloadMedia('${esc_attr(img)}','image-${i+1}.jpg')">下载</button>
       </div>`;
     });
     html += '</div>';
   }
 
-  if (!data.video_url && (!data.images || data.images.length === 0)) {
+  if (!data.video_url && (!data.images || data.images.length === 0) && !data.embed) {
     html += '<p style="color:#888;font-size:14px">未能提取到媒体内容，该平台可能需要配置 Cookie 才能解析</p>';
   }
 
@@ -185,21 +196,19 @@ function esc(s) {
   return d.innerHTML;
 }
 
+function esc_attr(s) {
+  return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
 async function downloadMedia(url, filename) {
-  try {
-    const r = await fetch(url);
-    const blob = await r.blob();
-    const blobUrl = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = blobUrl;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(blobUrl);
-  } catch(e) {
-    window.open(url, '_blank');
-  }
+  const ext = filename.split('.').pop().toLowerCase();
+  const proxy = `/api/proxy?url=${encodeURIComponent(url)}&dl=${encodeURIComponent(filename)}`;
+  const a = document.createElement('a');
+  a.href = proxy;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
 function copyUrl(url) {

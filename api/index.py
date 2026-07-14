@@ -10,6 +10,8 @@ from urllib.parse import urlparse
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse, Response
+from urllib.parse import quote
 
 app = FastAPI(title="Watermark Remover API")
 
@@ -39,6 +41,30 @@ _SUPPORTED = {
 @app.get("/api/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/api/proxy")
+async def proxy_media(url: str, dl: str = ""):
+    if not url:
+        raise HTTPException(400, "url required")
+    try:
+        async with httpx.AsyncClient(timeout=60, follow_redirects=True) as client:
+            resp = await client.get(url, headers={
+                "User-Agent": UA,
+                "Referer": "https://www.instagram.com/",
+            })
+        headers = {
+            "Access-Control-Allow-Origin": "*",
+            "Cache-Control": "public, max-age=3600",
+        }
+        content_type = resp.headers.get("content-type", "application/octet-stream")
+        headers["Content-Type"] = content_type
+        if dl:
+            filename = dl if "." in dl else f"{dl}.mp4"
+            headers["Content-Disposition"] = f'attachment; filename="{quote(filename)}"'
+        return Response(content=resp.content, headers=headers, status_code=resp.status_code)
+    except Exception as e:
+        raise HTTPException(500, str(e))
 
 
 @app.post("/api/parse")
