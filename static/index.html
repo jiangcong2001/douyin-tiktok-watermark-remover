@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>去水印工具 - 抖音/TikTok/快手/B站</title>
+<title>去水印工具 - 抖音/TikTok/快手/B站/Instagram/YouTube</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f0f0f;color:#fff;min-height:100vh}
@@ -33,15 +33,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .platform-youtube{background:#ff0000;color:#fff}
 .platform-xiaohongshu{background:#ff2442;color:#fff}
 .platform-weibo{background:#e6162d;color:#fff}
-.platform-twitter{background:#1da1f2;color:#fff}
-.platform-facebook{background:#1877f2;color:#fff}
 .platform-generic{background:#444;color:#fff}
 .result-title{font-size:18px;font-weight:600;margin-bottom:12px;line-height:1.5;word-break:break-word}
 .result-author{color:#888;font-size:13px;margin-bottom:16px}
 .media-preview{border-radius:12px;overflow:hidden;margin-bottom:16px;background:#000}
-.media-preview img,.media-preview video{width:100%;max-height:480px;object-fit:contain;display:block}
+.media-preview img,.media-preview video,.media-preview iframe{width:100%;max-height:480px;object-fit:contain;display:block;border:none}
 .actions{display:flex;gap:10px;flex-wrap:wrap}
-.btn-action{padding:12px 20px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;text-decoration:none}
+.btn-action{padding:12px 20px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;text-decoration:none;display:inline-block}
 .btn-download{background:#fe2c55;color:#fff}
 .btn-download:hover{opacity:.9}
 .btn-copy{background:#2a2a2a;color:#fff}
@@ -52,6 +50,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .image-card{border-radius:10px;overflow:hidden;background:#0f0f0f;border:1px solid #2a2a2a}
 .image-card img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
 .image-card .img-btn{display:block;width:100%;padding:8px;background:#fe2c55;color:#fff;border:none;font-size:12px;font-weight:600;cursor:pointer}
+.fallback{background:#2a1015;border:1px solid #ff6b6b;border-radius:8px;padding:14px;margin-top:12px}
+.fallback p{font-size:13px;color:#ff6b6b;line-height:1.6;margin-bottom:4px}
+.fallback p:last-child{margin-bottom:0}
+.fallback .hint{color:#8a8;font-size:12px}
 .tips{background:#1a1a1a;border-radius:16px;padding:24px;border:1px solid #2a2a2a;margin-top:24px}
 .tips h3{font-size:16px;font-weight:700;margin-bottom:12px}
 .tips ul{padding-left:20px;color:#888}
@@ -72,7 +74,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class="app">
   <div class="header">
     <h1>去水印工具</h1>
-    <p>支持抖音/TikTok/快手/B站/Instagram/YouTube/小红书/微博等，粘贴链接即可解析</p>
+    <p>解析抖音/TikTok/快手/B站/Instagram/YouTube/小红书/微博等平台链接</p>
   </div>
   <div class="input-box">
     <div class="input-row">
@@ -90,24 +92,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <li>获取无水印视频/图片，直接下载或复制链接</li>
     </ul>
     <div class="platforms">
-      <div class="plat-item">抖音 Douyin</div>
+      <div class="plat-item">抖音</div>
       <div class="plat-item">TikTok</div>
-      <div class="plat-item">快手 Kuaishou</div>
-      <div class="plat-item">哔哩哔哩 Bilibili</div>
+      <div class="plat-item">快手</div>
+      <div class="plat-item">B站</div>
       <div class="plat-item">Instagram</div>
       <div class="plat-item">YouTube</div>
-      <div class="plat-item">小红书 RED</div>
-      <div class="plat-item">微博 Weibo</div>
-      <div class="plat-item">Twitter/X</div>
-      <div class="plat-item">Facebook</div>
+      <div class="plat-item">小红书</div>
+      <div class="plat-item">微博</div>
+    </div>
+    <div style="margin-top:12px;padding:12px;background:#0f0f0f;border-radius:8px;font-size:12px;color:#666;line-height:1.6">
+      由于Vercel免费版限制，抖音/TikTok解析可能因风控失败。
+      部署时在项目配置中填写有效Cookie即可正常工作。
     </div>
   </div>
   <div class="footer">
-    Powered by <a href="https://github.com/Evil0ctal/Douyin_TikTok_Download_API" target="_blank">Douyin_TikTok_Download_API</a>
+    GitHub: <a href="https://github.com/jiangcong2001/douyin-tiktok-watermark-remover" target="_blank">douyin-tiktok-watermark-remover</a>
   </div>
 </div>
 <script>
-const PLATFORM_LABELS = { douyin:'抖音', tiktok:'TikTok', kuaishou:'快手', bilibili:'哔哩哔哩', instagram:'Instagram', youtube:'YouTube', xiaohongshu:'小红书', weibo:'微博', twitter:'Twitter/X', facebook:'Facebook', generic:'通用' };
+const PLATFORM_LABELS = { douyin:'抖音', tiktok:'TikTok', kuaishou:'快手', bilibili:'哔哩哔哩', instagram:'Instagram', youtube:'YouTube', xiaohongshu:'小红书', weibo:'微博', generic:'网页' };
 
 async function parseUrl() {
   const input = document.getElementById('urlInput');
@@ -132,10 +136,10 @@ async function parseUrl() {
     if (json.success) {
       renderResult(json.data);
     } else {
-      errorArea.innerHTML = `<div class="error">${json.error || '解析失败，请稍后重试'}</div>`;
+      errorArea.innerHTML = '<div class="error">' + (json.error || '解析失败') + '</div>';
     }
   } catch(e) {
-    errorArea.innerHTML = '<div class="error">网络请求失败，请检查网络连接</div>';
+    errorArea.innerHTML = '<div class="error">网络错误，请检查连接</div>';
   } finally {
     btn.disabled = false;
     btn.textContent = '解析';
@@ -151,39 +155,43 @@ function proxyUrl(url) {
 function renderResult(data) {
   const p = data.platform;
   const label = PLATFORM_LABELS[p] || p;
-  const badge = `<span class="platform-badge platform-${p}">${label}</span>`;
+  const badge = '<span class="platform-badge platform-' + p + '">' + label + '</span>';
+  let html = '<div class="result">' + badge;
 
-  let html = `<div class="result">${badge}`;
-  if (data.title) html += `<div class="result-title">${esc(data.title)}</div>`;
-  if (data.author) html += `<div class="result-author">@${esc(data.author)}</div>`;
+  if (data.title) html += '<div class="result-title">' + esc(data.title) + '</div>';
+  if (data.author) html += '<div class="result-author">@' + esc(data.author) + '</div>';
 
   if (data.embed) {
-    html += `<div class="media-preview">${data.embed}</div>`;
+    html += '<div class="media-preview">' + data.embed + '</div>';
   }
 
   if (data.video_url) {
     const proxied = proxyUrl(data.video_url);
-    html += `<div class="media-preview"><video controls preload="metadata" poster="${data.cover||''}" crossorigin="anonymous"><source src="${proxied}" type="video/mp4"></video></div>`;
-    html += `<div class="actions">
-      <button class="btn-action btn-download" onclick="downloadMedia('${esc_attr(data.video_url)}','video.mp4')">下载视频</button>
-      <button class="btn-action btn-copy" onclick="copyUrl('${esc_attr(data.video_url)}')">复制链接</button>
-      <a class="btn-action btn-open" href="${proxied}" target="_blank">新窗口打开</a>
-    </div>`;
+    html += '<div class="media-preview"><video controls preload="metadata" poster="' + (data.cover||'') + '" crossorigin="anonymous"><source src="' + proxied + '" type="video/mp4"></video></div>';
+    html += '<div class="actions">' +
+      '<button class="btn-action btn-download" onclick="downloadMedia(\'' + esc_attr(data.video_url) + '\',\'video.mp4\')">下载视频</button>' +
+      '<button class="btn-action btn-copy" onclick="copyUrl(\'' + esc_attr(data.video_url) + '\')">复制链接</button>' +
+      '<a class="btn-action btn-open" href="' + proxied + '" target="_blank">新窗口打开</a>' +
+      '</div>';
   }
 
   if (data.images && data.images.length > 0) {
     html += '<div class="images-grid">';
-    data.images.forEach((img,i) => {
-      html += `<div class="image-card">
-        <img src="${proxyUrl(img)}" loading="lazy" onerror="this.style.display='none'">
-        <button class="img-btn" onclick="downloadMedia('${esc_attr(img)}','image-${i+1}.jpg')">下载</button>
-      </div>`;
+    data.images.forEach(function(img,i) {
+      html += '<div class="image-card">' +
+        '<img src="' + proxyUrl(img) + '" loading="lazy" onerror="this.style.display=\'none\'">' +
+        '<button class="img-btn" onclick="downloadMedia(\'' + esc_attr(img) + '\',\'image-' + (i+1) + '.jpg\')">下载</button>' +
+        '</div>';
     });
     html += '</div>';
   }
 
-  if (!data.video_url && (!data.images || data.images.length === 0) && !data.embed) {
-    html += '<p style="color:#888;font-size:14px">未能提取到媒体内容，该平台可能需要配置 Cookie 才能解析</p>';
+  if (data.error) {
+    html += '<div class="fallback"><p>' + esc(data.error) + '</p><p class="hint">请确认链接正确，若为抖音/TikTok则可能需要配置Cookie</p></div>';
+  }
+
+  if (!data.video_url && (!data.images || data.images.length === 0) && !data.embed && !data.error) {
+    html += '<div class="fallback"><p>未能提取到媒体内容，该平台可能需要Cookie</p></div>';
   }
 
   html += '</div>';
@@ -191,20 +199,18 @@ function renderResult(data) {
 }
 
 function esc(s) {
-  const d = document.createElement('div');
+  var d = document.createElement('div');
   d.textContent = s;
   return d.innerHTML;
 }
 
 function esc_attr(s) {
-  return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
-async function downloadMedia(url, filename) {
-  const ext = filename.split('.').pop().toLowerCase();
-  const proxy = `/api/proxy?url=${encodeURIComponent(url)}&dl=${encodeURIComponent(filename)}`;
-  const a = document.createElement('a');
-  a.href = proxy;
+function downloadMedia(url, filename) {
+  var a = document.createElement('a');
+  a.href = '/api/proxy?url=' + encodeURIComponent(url) + '&dl=' + encodeURIComponent(filename);
   a.download = filename;
   document.body.appendChild(a);
   a.click();
@@ -212,14 +218,14 @@ async function downloadMedia(url, filename) {
 }
 
 function copyUrl(url) {
-  navigator.clipboard.writeText(url).then(() => {
-    const btns = document.querySelectorAll('.btn-copy');
-    btns.forEach(b => b.textContent = '已复制');
-    setTimeout(() => btns.forEach(b => b.textContent = '复制链接'), 2000);
+  navigator.clipboard.writeText(url).then(function() {
+    var btns = document.querySelectorAll('.btn-copy');
+    btns.forEach(function(b) { b.textContent = '已复制'; });
+    setTimeout(function() { btns.forEach(function(b) { b.textContent = '复制链接'; }); }, 2000);
   });
 }
 
-document.getElementById('urlInput').addEventListener('keydown', e => {
+document.getElementById('urlInput').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') parseUrl();
 });
 </script>
