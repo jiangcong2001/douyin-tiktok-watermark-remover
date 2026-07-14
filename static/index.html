@@ -29,6 +29,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .platform-tiktok{background:#000;color:#fff;border:1px solid #25f4ee}
 .platform-kuaishou{background:#ff4906;color:#fff}
 .platform-bilibili{background:#fb7299;color:#fff}
+.platform-instagram{background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff}
+.platform-youtube{background:#ff0000;color:#fff}
+.platform-xiaohongshu{background:#ff2442;color:#fff}
+.platform-weibo{background:#e6162d;color:#fff}
+.platform-twitter{background:#1da1f2;color:#fff}
+.platform-facebook{background:#1877f2;color:#fff}
+.platform-generic{background:#444;color:#fff}
 .result-title{font-size:18px;font-weight:600;margin-bottom:12px;line-height:1.5;word-break:break-word}
 .result-author{color:#888;font-size:13px;margin-bottom:16px}
 .media-preview{border-radius:12px;overflow:hidden;margin-bottom:16px;background:#000}
@@ -65,7 +72,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class="app">
   <div class="header">
     <h1>去水印工具</h1>
-    <p>支持抖音 / TikTok / 快手 / B站，粘贴链接即可解析</p>
+    <p>支持抖音/TikTok/快手/B站/Instagram/YouTube/小红书/微博等，粘贴链接即可解析</p>
   </div>
   <div class="input-box">
     <div class="input-row">
@@ -78,7 +85,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="tips">
     <h3>使用说明</h3>
     <ul>
-      <li>在抖音/TikTok/快手/B站 APP 中复制视频分享链接</li>
+      <li>在抖音/TikTok/快手/B站/Instagram/YouTube 等平台复制分享链接</li>
       <li>粘贴到上方输入框，点击"解析"</li>
       <li>获取无水印视频/图片，直接下载或复制链接</li>
     </ul>
@@ -87,6 +94,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="plat-item">TikTok</div>
       <div class="plat-item">快手 Kuaishou</div>
       <div class="plat-item">哔哩哔哩 Bilibili</div>
+      <div class="plat-item">Instagram</div>
+      <div class="plat-item">YouTube</div>
+      <div class="plat-item">小红书 RED</div>
+      <div class="plat-item">微博 Weibo</div>
+      <div class="plat-item">Twitter/X</div>
+      <div class="plat-item">Facebook</div>
     </div>
   </div>
   <div class="footer">
@@ -94,7 +107,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 <script>
-const PLATFORM_LABELS = { douyin:'抖音', tiktok:'TikTok', kuaishou:'快手', bilibili:'哔哩哔哩' };
+const PLATFORM_LABELS = { douyin:'抖音', tiktok:'TikTok', kuaishou:'快手', bilibili:'哔哩哔哩', instagram:'Instagram', youtube:'YouTube', xiaohongshu:'小红书', weibo:'微博', twitter:'Twitter/X', facebook:'Facebook', generic:'通用' };
 
 async function parseUrl() {
   const input = document.getElementById('urlInput');
